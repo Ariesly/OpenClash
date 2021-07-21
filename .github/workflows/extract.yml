@@ -1,0 +1,42 @@
+name: Extract Clash-Premium
+
+on:
+  schedule:
+    - cron: '15 0,12 * * *'
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: shrink/actions-docker-extract@v1
+      id: extract
+      with:
+        image: dreamacro/clash-premium:latest
+        path: clash
+    - name: Get Latest Version
+      id: latestversion
+      run: echo ::set-output name=latestversion::$(cat nightly_version)
+    - name: Cat Clash Version
+      id: clashversion
+      run: echo "::set-output name=version::$(${{ steps.extract.outputs.destination }}/clash -v ｜grep | awk '{print $2}')"
+    - name: GZIP
+      run: |
+        gzip -f -S -${{ steps.clashversion.outputs.version }}.gz ${{ steps.extract.outputs.destination }}/clash
+    - name: Save Clash Version
+      run: echo "${{ steps.clashversion.outputs.version }}" > ./nightly_version
+    - name: Move Clash
+      run: |
+        mv ${{ steps.extract.outputs.destination }}/clash-${{ steps.clashversion.outputs.version }}.gz ./core-lateset/premium/clash-linux-amd64-${{ steps.clashversion.outputs.version }}.gz
+    - name: Commit Clash
+      if: ${{ steps.clashversion.outputs.version != steps.latestversion.outputs.latestversion }}
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *
+        git commit -m "Nightly renew Clash." -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.PERSON_TOKEN }}
+        branch: 'master'
