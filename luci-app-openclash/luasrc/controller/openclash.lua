@@ -201,8 +201,9 @@ end
 
 local function corelv()
 	luci.sys.call("sh /usr/share/openclash/clash_version.sh")
+	luci.sys.call("sh /usr/share/openclash/nightly_version.sh")
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
-	local core_tun_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null")
+	local core_tun_lv = luci.sys.exec("sed -n 1p /tmp/nightly_last_version 2>/dev/null")
 	local core_game_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
 	return core_lv .. "," .. core_tun_lv .. "," .. core_game_lv
 end
