@@ -10,6 +10,7 @@ small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
 CPU_MODEL=$(uci get openclash.config.core_version 2>/dev/null)
 
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
+[ ! -f "/tmp/nightly_last_version" ] && /usr/share/openclash/nightly_version.sh 2>/dev/null
 if [ "$small_flash_memory" != "1" ]; then
    dev_core_path="/etc/openclash/core/clash"
    tun_core_path="/etc/openclash/core/clash_tun"
@@ -25,7 +26,7 @@ fi
 case $CORE_TYPE in
 	"TUN")
    CORE_CV=$($tun_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
-   CORE_LV=$(sed -n 2p /tmp/clash_last_version 2>/dev/null)
+   CORE_LV=$(sed -n 1p /tmp/nightly_last_version 2>/dev/null)
    if [ -z "$CORE_LV" ]; then
       LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
       sleep 5
@@ -51,7 +52,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			case $CORE_TYPE in
       	"TUN")
       	LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
-				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+				curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/Ariesly/OpenClash/master/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
 				LOG_OUT "【Game】Core Downloading, Please Try to Download and Upload Manually If Fails"
@@ -66,7 +67,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			case $CORE_TYPE in
       	"TUN")
       	LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
-				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/Ariesly/OpenClash@master/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
 				LOG_OUT "【Game】Core Downloading, Please Try to Download and Upload Manually If Fails"
