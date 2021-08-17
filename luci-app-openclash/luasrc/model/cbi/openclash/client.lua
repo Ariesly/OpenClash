@@ -53,7 +53,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
+if m.uci:get("openclash", "config", "config_path") and string.sub(m.uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")
@@ -133,10 +133,10 @@ dler = Map("openclash")
 dler.pageaction = false
 dler:section(SimpleSection).template  = "openclash/dlercloud"
 
-if uci:get("openclash", "config", "dler_token") then
+m:append(Template("openclash/toolbar_show"))
+
+if m.uci:get("openclash", "config", "dler_token") then
   return m, dler, form, s, ap, d
 else
-	dler.title = translate("Sponsor")
-	fs.unlink("/tmp/dler_info")
-  return m, form, s, ap, d, dler
+	return m, form, s, ap, d
 end

@@ -76,6 +76,7 @@ dir = "/etc/openclash/config/"
 bakck_dir="/etc/openclash/backup"
 proxy_pro_dir="/etc/openclash/proxy_provider/"
 rule_pro_dir="/etc/openclash/rule_provider/"
+backup_dir="/tmp/"
 create_bakck_dir=fs.mkdir(bakck_dir)
 create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
 create_rule_pro_dir=fs.mkdir(rule_pro_dir)
@@ -93,6 +94,8 @@ HTTP.setfilehandler(
 				if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
+			elseif fp == "backup-file" then
+				if meta and chunk then fd = nixio.open(backup_dir .. meta.file, "w") end
 			end
 
 			if not fd then
@@ -126,6 +129,11 @@ HTTP.setfilehandler(
 				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
 				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
+			elseif fp == "backup-file" then
+				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
+				os.execute("mv /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1")
+				fs.unlink(backup_dir .. meta.file)
+				um.value = translate("Backup File Restore Successful!")
 			end
 			fs.unlink("/tmp/Proxy_Group")
 		end
@@ -162,7 +170,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
+if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")
@@ -330,8 +338,9 @@ s.addremove = false
 
 local conf = uci:get("openclash", "config", "config_path")
 local dconf = "/usr/share/openclash/res/default.yaml"
+if not conf then conf = "/etc/openclash/config/config.yaml" end
 local conf_name = fs.basename(conf)
-if not conf_name or conf == "" then conf_name = "config.yaml" conf = "/etc/openclash/config/config.yaml" end
+if not conf_name then conf_name = "config.yaml"  end
 local sconf = "/etc/openclash/"..conf_name
 
 sev = s:option(TextValue, "user")
@@ -394,5 +403,7 @@ o.write = function()
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
+
+m:append(Template("openclash/toolbar_show"))
 
 return ful , form , p , m
